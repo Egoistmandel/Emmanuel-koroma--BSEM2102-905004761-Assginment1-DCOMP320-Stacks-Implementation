@@ -7,7 +7,7 @@
 **Student ID** : 905004761  
 **Module**     : BSEM2102  
 **Examiner**   : Amandus Benjamin Coker  
-**Semester**   : 03&05 | September 2026 – February 2027  
+**Semester**   : 05 | September 2026 – February 2027  
 **Institution**: Limkokwing University of Creative Technology — Sierra Leone  
 
 ---
@@ -319,7 +319,7 @@ git push -u origin main
 ```
 
 
----
+
 
 ## 17. References
 
