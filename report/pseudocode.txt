@@ -1,0 +1,273 @@
+==============================================================
+  DCOMP320 — Data Structures and Algorithm Analysis
+  Assignment 1: Stacks Implementation
+  PSEUDOCODE
+==============================================================
+  Student  : Emmanuel Koroma
+  ID       : 905004761
+  Module   : BSEM2102
+==============================================================
+
+
+--------------------------------------------------------------
+PSEUDOCODE 1 — Stack Data Structure
+--------------------------------------------------------------
+
+CLASS Stack:
+
+    INITIALISE:
+        data ← empty list          // internal storage
+
+    FUNCTION push(item):
+        append item to data        // add to top
+
+    FUNCTION pop():
+        IF data is empty THEN
+            RAISE error "pop from an empty stack"
+        END IF
+        REMOVE and RETURN last item of data   // remove from top
+
+    FUNCTION peek():
+        IF data is empty THEN
+            RAISE error "peek at an empty stack"
+        END IF
+        RETURN last item of data   // view top without removing
+
+    FUNCTION is_empty():
+        RETURN (length of data == 0)
+
+    FUNCTION size():
+        RETURN length of data
+
+END CLASS
+
+
+--------------------------------------------------------------
+PSEUDOCODE 2 — Tokeniser
+--------------------------------------------------------------
+
+FUNCTION tokenise(expression):
+
+    tokens ← empty list
+    i ← 0
+
+    WHILE i < length of expression DO
+
+        ch ← expression[i]
+
+        IF ch is a space THEN
+            i ← i + 1
+            CONTINUE
+
+        ELSE IF ch is a digit OR ch is '.' THEN
+            j ← i
+            WHILE j < length AND (expression[j] is digit OR '.') DO
+                j ← j + 1
+            END WHILE
+            APPEND expression[i..j] to tokens   // full number
+            i ← j
+
+        ELSE IF ch is in {+, -, *, /, (, )} THEN
+            IF ch == '-' AND (tokens is empty OR last token is operator or '(') THEN
+                APPEND '0' to tokens             // handle unary minus
+            END IF
+            APPEND ch to tokens
+            i ← i + 1
+
+        ELSE
+            RAISE error "Unrecognised character"
+
+    END WHILE
+
+    RETURN tokens
+
+END FUNCTION
+
+
+--------------------------------------------------------------
+PSEUDOCODE 3 — Infix to Postfix (Shunting-Yard Algorithm)
+--------------------------------------------------------------
+
+FUNCTION infix_to_postfix(tokens):
+
+    output_queue   ← empty list
+    operator_stack ← new Stack()
+
+    FOR EACH token IN tokens DO
+
+        IF token is a NUMBER THEN
+            APPEND token to output_queue
+
+        ELSE IF token == '(' THEN
+            operator_stack.push('(')
+
+        ELSE IF token == ')' THEN
+            WHILE operator_stack is NOT empty AND operator_stack.peek() != '(' DO
+                APPEND operator_stack.pop() to output_queue
+            END WHILE
+            IF operator_stack is empty THEN
+                RAISE error "Mismatched parentheses: extra ')'"
+            END IF
+            operator_stack.pop()                 // discard '('
+
+        ELSE  // token is an operator (+, -, *, /)
+            WHILE operator_stack is NOT empty
+              AND operator_stack.peek() != '('
+              AND precedence(operator_stack.peek()) >= precedence(token) DO
+                APPEND operator_stack.pop() to output_queue
+            END WHILE
+            operator_stack.push(token)
+
+    END FOR
+
+    WHILE operator_stack is NOT empty DO
+        top ← operator_stack.pop()
+        IF top == '(' THEN
+            RAISE error "Mismatched parentheses: extra '('"
+        END IF
+        APPEND top to output_queue
+    END WHILE
+
+    RETURN output_queue
+
+END FUNCTION
+
+
+--------------------------------------------------------------
+PSEUDOCODE 4 — Postfix Evaluation
+--------------------------------------------------------------
+
+FUNCTION evaluate_postfix(postfix_tokens):
+
+    operand_stack ← new Stack()
+
+    FOR EACH token IN postfix_tokens DO
+
+        IF token is a NUMBER THEN
+            operand_stack.push( to_float(token) )
+
+        ELSE  // token is an operator
+            IF operand_stack.size() < 2 THEN
+                RAISE error "Not enough operands"
+            END IF
+
+            right ← operand_stack.pop()
+            left  ← operand_stack.pop()
+
+            IF   token == '+' THEN result ← left + right
+            ELIF token == '-' THEN result ← left - right
+            ELIF token == '*' THEN result ← left * right
+            ELIF token == '/' THEN
+                IF right == 0 THEN
+                    RAISE error "Division by zero"
+                END IF
+                result ← left / right
+            END IF
+
+            operand_stack.push(result)
+
+    END FOR
+
+    IF operand_stack.size() != 1 THEN
+        RAISE error "Too many operands"
+    END IF
+
+    RETURN operand_stack.pop()
+
+END FUNCTION
+
+
+--------------------------------------------------------------
+PSEUDOCODE 5 — High-Level Expression Evaluator
+--------------------------------------------------------------
+
+FUNCTION evaluate_expression(expression):
+
+    expression ← strip whitespace from expression
+
+    IF expression is empty THEN
+        RETURN "ERROR: empty expression"
+    END IF
+
+    TRY:
+        tokens       ← tokenise(expression)
+        postfix      ← infix_to_postfix(tokens)
+        result       ← evaluate_postfix(postfix)
+
+        IF result is a whole number THEN
+            RETURN string(integer(result))
+        ELSE
+            RETURN string(round(result, 6))
+        END IF
+
+    CATCH ZeroDivisionError   → RETURN "ERROR: " + message
+    CATCH ValueError          → RETURN "ERROR: " + message
+    CATCH IndexError          → RETURN "ERROR: " + message
+
+END FUNCTION
+
+
+--------------------------------------------------------------
+PSEUDOCODE 6 — File Processing
+--------------------------------------------------------------
+
+FUNCTION read_input_file(filepath):
+    OPEN filepath for reading
+    READ all lines into list
+    STRIP trailing empty lines
+    RETURN list of lines
+END FUNCTION
+
+FUNCTION process_expressions(items):
+    results ← empty list
+    FOR EACH item IN items DO
+        IF item starts with '---' THEN
+            APPEND item to results          // preserve separator
+        ELSE IF item is blank THEN
+            APPEND item to results          // preserve blank line
+        ELSE
+            result ← evaluate_expression(item)
+            APPEND result to results
+        END IF
+    END FOR
+    RETURN results
+END FUNCTION
+
+FUNCTION write_output_file(filepath, results):
+    OPEN filepath for writing
+    FOR EACH result IN results DO
+        WRITE result + newline to file
+    END FOR
+END FUNCTION
+
+
+--------------------------------------------------------------
+PSEUDOCODE 7 — Main Program
+--------------------------------------------------------------
+
+FUNCTION main():
+
+    PRINT program header
+
+    TRY:
+        items ← read_input_file("input.txt")
+    CATCH FileNotFoundError:
+        PRINT "ERROR: input.txt not found"
+        EXIT
+    END TRY
+
+    results ← process_expressions(items)
+
+    PRINT summary table of expressions and results
+
+    write_output_file("output.txt", results)
+
+    PRINT "Results written to output.txt"
+
+END FUNCTION
+
+CALL main()
+
+==============================================================
+END OF PSEUDOCODE
+==============================================================

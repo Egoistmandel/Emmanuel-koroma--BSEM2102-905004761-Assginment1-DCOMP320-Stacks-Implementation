@@ -1,0 +1,611 @@
+==============================================================
+
+        LIMKOKWING UNIVERSITY OF CREATIVE TECHNOLOGY
+               DEPARTMENT OF INFORMATION AND
+                COMMUNICATION TECHNOLOGY
+
+==============================================================
+
+                        ASSIGNMENT 1
+
+              DATA STRUCTURES AND ALGORITHM
+                   STACKS IMPLEMENTATION
+
+==============================================================
+
+  Module Code    :  DCOMP320
+  Module Name    :  Data Structures and Algorithm Analysis
+  Assignment     :  Stacks Implementation
+  Student Name   :  Emmanuel Koroma
+  Student ID     :  905004761
+  Programme      :  BSEM2102
+  Examiner       :  Amandus Benjamin Coker
+  Semester       :  03&05 | September 2026 - February 2027
+  Submission     :  Week 4
+  Date Submitted :  [SUBMISSION DATE]
+
+==============================================================
+
+
+==============================================================
+TABLE OF CONTENTS
+==============================================================
+
+  1.  Introduction
+  2.  Objectives
+  3.  Problem Description
+  4.  Data Structures Used
+       4.1  What is a Stack?
+       4.2  Stack Operations
+       4.3  LIFO Principle
+       4.4  Importance of Stacks in Computing
+  5.  Program Design
+       5.1  Architecture Overview
+       5.2  Module Breakdown
+       5.3  Key Functions
+       5.4  Algorithm Description
+       5.5  Pseudocode Summary
+  6.  Implementation
+       6.1  Stack Class
+       6.2  Tokeniser
+       6.3  Shunting-Yard Algorithm
+       6.4  Postfix Evaluator
+       6.5  File Processing
+       6.6  Main Entry Point
+  7.  Input Processing
+       7.1  Input File Format
+       7.2  Input File Content
+  8.  Output Processing
+       8.1  Output File Format
+       8.2  Output File Content
+  9.  Testing and Results
+       9.1  Testing Approach
+       9.2  Test Categories
+       9.3  Test Results
+       9.4  Verification of Calculations
+  10. Error Handling
+  11. Limitations
+  12. Conclusion
+  13. References
+
+
+==============================================================
+1. INTRODUCTION
+==============================================================
+
+This report documents the design, implementation, testing, and
+evaluation of a stack-based mathematical expression evaluator
+developed for Assignment 1 of DCOMP320 - Data Structures and
+Algorithm Analysis.
+
+The program is written in Python and fulfils the assignment
+requirement of implementing a Stack data structure from scratch
+and using it to evaluate mathematical expressions. Expressions
+are read from a plain text input file (input.txt), evaluated
+using a custom algorithm, and the results are written to an
+output file (output.txt) in a matching format.
+
+The Shunting-Yard algorithm, originally described by Edsger W.
+Dijkstra, is used to convert infix expressions (the standard
+human-readable form, e.g. 3 + 5 * 2) into postfix notation
+(Reverse Polish Notation, e.g. 3 5 2 * +). The postfix
+expression is then evaluated using a second stack. This
+two-stack approach cleanly demonstrates the Stack data
+structure in a practical and academically meaningful way.
+
+No built-in Python evaluation functions (such as eval()) were
+used. Every component of the algorithm -- tokenisation, infix-
+to-postfix conversion, and postfix evaluation -- is implemented
+explicitly in the source code.
+
+
+==============================================================
+2. OBJECTIVES
+==============================================================
+
+The objectives of this assignment are:
+
+  (a) To implement a Stack class in Python that demonstrates
+      the stack data structure with push(), pop(), and peek()
+      operations following the LIFO principle.
+
+  (b) To implement a function that parses and evaluates
+      mathematical expressions using the Stack, correctly
+      handling operators (+, -, *, /), parentheses, and
+      operator precedence rules.
+
+  (c) To implement a function that reads expressions from
+      input.txt, evaluates each expression, and stores the
+      results.
+
+  (d) To write the evaluated results to output.txt maintaining
+      the same format as the input file, with results
+      replacing the expressions.
+
+
+==============================================================
+3. PROBLEM DESCRIPTION
+==============================================================
+
+The core problem addressed by this program is the evaluation
+of infix mathematical expressions using a stack-based approach.
+
+An infix expression is one where operators appear between
+operands (e.g. 3 + 5 * 2). While this format is natural for
+humans, it is not straightforward for computers to evaluate
+directly because:
+
+  - Operator precedence must be respected (* before +)
+  - Parentheses can override the natural precedence
+  - The expression must be scanned left to right
+
+The classic computer science solution is the Shunting-Yard
+algorithm, which uses a Stack to reorganise an infix expression
+into postfix notation. Postfix notation is much easier for a
+computer to evaluate because no precedence rules or parentheses
+are needed during evaluation -- a simple stack-based scan
+evaluates it correctly.
+
+The input.txt file contains multiple expressions, each on a
+separate line, with lines of five dashes (-----) acting as
+separators between groups. The program must preserve this
+structure in the output.
+
+Example:
+  Input line  :  3 + 5 * 2
+  Output line :  13
+
+
+==============================================================
+4. DATA STRUCTURES USED
+==============================================================
+
+4.1  What is a Stack?
+---------------------
+A Stack is a linear data structure that stores items in a
+sequential order. It is defined by one key constraint: all
+insertions and deletions occur at the same end, called the
+TOP of the stack.
+
+A physical analogy is a stack of dinner plates: you can only
+place a new plate on top, and you can only take a plate from
+the top.
+
+Diagram:
+    PUSH / POP
+        |
+  +----------+
+  |    30    |  <- TOP  (last pushed, first popped)
+  +----------+
+  |    20    |
+  +----------+
+  |    10    |  <- BOTTOM
+  +----------+
+
+
+4.2  Stack Operations
+---------------------
+
+  push(item)  -- Add item to the top.          O(1)
+  pop()       -- Remove and return top item.   O(1)
+  peek()      -- View top item, no removal.    O(1)
+  is_empty()  -- True if stack has no items.   O(1)
+  size()      -- Number of items in stack.     O(1)
+
+Both pop() and peek() raise IndexError with a descriptive
+message when called on an empty stack.
+
+
+4.3  LIFO Principle
+-------------------
+LIFO = Last In, First Out.
+The most recently added item is always the first removed.
+
+Example:
+  push(5), push(10), push(15)
+  pop() -> 15,  pop() -> 10,  pop() -> 5
+
+
+4.4  Importance of Stacks in Computing
+---------------------------------------
+Stacks are used in:
+  - Expression evaluation and parsing (this assignment)
+  - Function call stack (managing return addresses)
+  - Undo/redo in text editors
+  - Browser history (back/forward buttons)
+  - Depth-first search in graph algorithms
+  - Syntax checking in compilers
+
+
+==============================================================
+5. PROGRAM DESIGN
+==============================================================
+
+5.1  Architecture Overview
+--------------------------
+The program is a single Python file (main.py) with four
+clearly labelled sections:
+
+  Section 1 -- Stack class
+  Section 2 -- Expression evaluation functions
+  Section 3 -- File I/O functions
+  Section 4 -- Main entry point
+
+
+5.2  Module Breakdown
+---------------------
+
+  main.py
+  +-- CLASS Stack
+  |     push(), pop(), peek(), is_empty(), size()
+  +-- CONSTANT PRECEDENCE  (operator precedence table)
+  +-- FUNCTION tokenise()
+  +-- FUNCTION infix_to_postfix()
+  +-- FUNCTION evaluate_postfix()
+  +-- FUNCTION evaluate_expression()
+  +-- FUNCTION read_input_file()
+  +-- FUNCTION process_expressions()
+  +-- FUNCTION write_output_file()
+  +-- FUNCTION main()
+
+
+5.3  Key Functions
+------------------
+
+  tokenise(expression)
+    Input  : raw infix string
+    Output : list of string tokens
+    Role   : breaks the expression into individual parts
+
+  infix_to_postfix(tokens)
+    Input  : list of infix tokens
+    Output : list of postfix tokens
+    Uses   : operator_stack (Stack instance)
+
+  evaluate_postfix(postfix_tokens)
+    Input  : list of postfix tokens
+    Output : float result
+    Uses   : operand_stack (Stack instance)
+
+  evaluate_expression(expression)
+    Input  : raw infix string
+    Output : string result or "ERROR: ..." message
+
+  process_expressions(items)
+    Input  : list of lines from input.txt
+    Output : list of result strings
+
+
+5.4  Algorithm Description
+--------------------------
+STAGE 1 -- TOKENISATION
+  Scan character by character. Group digits into number
+  tokens. Operators and parentheses are single tokens.
+  Spaces are ignored. A leading minus sign (unary) is
+  handled by inserting a '0' before it.
+
+STAGE 2 -- SHUNTING-YARD (INFIX TO POSTFIX)
+  Uses operator_stack (Stack). Rules per token:
+    Number   --> append to output queue
+    '('      --> push to operator_stack
+    ')'      --> pop to output until '(' found; discard '('
+    Operator --> pop higher/equal precedence operators first,
+                 then push current operator
+
+  Precedence:  * and / = 2  (higher)
+               + and - = 1  (lower)
+
+STAGE 3 -- POSTFIX EVALUATION
+  Uses operand_stack (Stack). Rules per token:
+    Number   --> push to operand_stack
+    Operator --> pop two values, apply operator, push result
+  Final answer = single value remaining on stack.
+
+
+5.5  Pseudocode
+---------------
+Full pseudocode is in report/pseudocode.txt.
+System flowchart is in report/diagrams/system_flowchart.txt.
+
+
+==============================================================
+6. IMPLEMENTATION
+==============================================================
+
+6.1  Stack Class
+----------------
+Uses a Python list as backing store.
+Index -1 is always the top (most recently pushed item).
+
+  push(item)  -->  self._data.append(item)
+  pop()       -->  return self._data.pop()
+  peek()      -->  return self._data[-1]
+  is_empty()  -->  return len(self._data) == 0
+  size()      -->  return len(self._data)
+
+
+6.2  Tokeniser
+--------------
+Single while loop with index pointer i. Multi-digit numbers
+collected by scanning forward. Unary minus handled by
+inserting '0': e.g. -5 + 10 becomes tokens 0 - 5 + 10.
+
+
+6.3  Shunting-Yard Algorithm
+-----------------------------
+Example trace for  (8 / 4) + 7 * 2:
+
+  Token  Action                 operator_stack  output_queue
+  -----  --------------------   --------------  ------------------
+  (      push                   [(]             []
+  8      number->output         [(]             [8]
+  /      push                   [(,/]           [8]
+  4      number->output         [(,/]           [8,4]
+  )      pop until (            []              [8,4,/]
+  +      push                   [+]             [8,4,/]
+  7      number->output         [+]             [8,4,/,7]
+  *      *>+ so push            [+,*]           [8,4,/,7]
+  2      number->output         [+,*]           [8,4,/,7,2]
+  end    pop remaining          []              [8,4,/,7,2,*,+]
+
+Postfix result: 8 4 / 7 2 * +
+
+
+6.4  Postfix Evaluator
+-----------------------
+Example trace for  8 4 / 7 2 * +:
+
+  Token  Action                 operand_stack
+  -----  --------------------   ----------------
+  8      push 8.0               [8.0]
+  4      push 4.0               [8.0, 4.0]
+  /      8/4=2.0, push          [2.0]
+  7      push 7.0               [2.0, 7.0]
+  2      push 2.0               [2.0, 7.0, 2.0]
+  *      7*2=14.0, push         [2.0, 14.0]
+  +      2+14=16.0, push        [16.0]
+
+Result: 16
+
+
+6.5  File Processing
+---------------------
+read_input_file() reads all lines, strips trailing newlines
+and trailing empty lines.
+process_expressions() preserves '-----' separator lines
+and blank lines; evaluates everything else.
+write_output_file() writes results one per line.
+
+
+6.6  Main Entry Point
+----------------------
+main() orchestrates: read -> process -> print summary ->
+write. Handles FileNotFoundError gracefully.
+
+
+==============================================================
+7. INPUT PROCESSING
+==============================================================
+
+7.1  Input File Format
+-----------------------
+  - Plain text, one expression per line
+  - Expressions separated by lines containing only: -----
+  - Operators supported: + - * /
+  - Parentheses: ( and )
+  - Numbers: integers or decimals
+
+7.2  Input File Content
+------------------------
+  Line 01: 3 + 5 * 2
+  Line 02: -----
+  Line 03: (8 / 4) + 7 * 2
+  Line 04: -----
+  Line 05: 10 - (2 + 3) * 4
+  Line 06: -----
+  Line 07: 100 / 5 + 3 * 2
+  Line 08: -----
+  Line 09: (3 + 4) * (2 - 1)
+  Line 10: -----
+  Line 11: 15 - 3 * 2 + 8 / 4
+  Line 12: -----
+  Line 13: (10 + 2) * 3 - 6 / 2
+  Line 14: -----
+  Line 15: 50 / (5 * 2) + 3
+  Line 16: -----
+  Line 17: -5 + 10
+  Line 18: -----
+  Line 19: ((2 + 3) * (4 - 1)) / 5
+
+
+==============================================================
+8. OUTPUT PROCESSING
+==============================================================
+
+8.1  Output File Format
+------------------------
+  - Plain text, one result per line
+  - Separator lines (-----) preserved in same positions
+  - Integer results written without decimal point
+  - Non-integer results rounded to 6 decimal places
+  - Error results prefixed with "ERROR:"
+
+8.2  Output File Content
+-------------------------
+  Line 01: 13
+  Line 02: -----
+  Line 03: 16
+  Line 04: -----
+  Line 05: -10
+  Line 06: -----
+  Line 07: 26
+  Line 08: -----
+  Line 09: 7
+  Line 10: -----
+  Line 11: 11
+  Line 12: -----
+  Line 13: 33
+  Line 14: -----
+  Line 15: 8
+  Line 16: -----
+  Line 17: 5
+  Line 18: -----
+  Line 19: 3
+
+Manual verification:
+
+  Expression               Working                    Result
+  -----------------------  -------------------------  ------
+  3 + 5 * 2                3 + (5x2) = 3 + 10         13  OK
+  (8 / 4) + 7 * 2          2 + (7x2) = 2 + 14         16  OK
+  10 - (2 + 3) * 4         10 - (5x4) = 10 - 20      -10  OK
+  100 / 5 + 3 * 2          20 + 6                      26  OK
+  (3 + 4) * (2 - 1)        7 x 1                        7  OK
+  15 - 3 * 2 + 8 / 4       15 - 6 + 2                  11  OK
+  (10 + 2) * 3 - 6 / 2     36 - 3                      33  OK
+  50 / (5 * 2) + 3         50/10 + 3 = 5 + 3            8  OK
+  -5 + 10                  -5 + 10                       5  OK
+  ((2+3)*(4-1))/5          (5x3)/5 = 15/5               3  OK
+
+
+==============================================================
+9. TESTING AND RESULTS
+==============================================================
+
+9.1  Testing Approach
+----------------------
+Automated unit tests written using pytest, stored in
+tests/test_stack.py.
+
+Run command:  py -m pytest tests/test_stack.py -v
+
+Tests are organised into separate test classes, each
+focused on one component of the program.
+
+
+9.2  Test Categories
+---------------------
+
+  Test Class                Tests  Coverage Area
+  ----------------------    -----  -------------------------
+  TestStackPush                 4  push() operation
+  TestStackPop                  5  pop(), LIFO order, errors
+  TestStackPeek                 4  peek(), no removal, errors
+  TestStackHelpers              6  is_empty(), size()
+  TestBasicArithmetic           6  +, -, *, /
+  TestOperatorPrecedence        5  * before +, left-to-right
+  TestParentheses               7  override, nested, examples
+  TestUnaryMinus                3  negative operands
+  TestComplexExpressions        5  multi-operator, nested
+  TestErrorHandling             7  div/0, bad chars, parens
+  TestFileProcessing            5  separators, blank lines
+  ----------------------    -----  -------------------------
+  TOTAL                        57
+
+
+9.3  Test Results
+------------------
+All 57 tests passed.
+
+  Command:  py -m pytest tests/test_stack.py -v
+  Result :  57 passed in 0.43s
+  Python :  3.14.2
+  pytest :  9.0.3
+  Platform: win32
+
+
+9.4  Verification of Calculations
+-----------------------------------
+All three assignment examples verified:
+
+  3 + 5 * 2           Expected: 13   Actual: 13   PASS
+  (8 / 4) + 7 * 2     Expected: 16   Actual: 16   PASS
+                       Note: assignment doc shows 17 but
+                       correct math is 2+14=16.
+  10 - (2 + 3) * 4    Expected: -10  Actual: -10  PASS
+
+
+==============================================================
+10. ERROR HANDLING
+==============================================================
+
+  Error Condition        Example            Output
+  ---------------------  -----------------  ---------------------------------
+  Empty expression       (blank line)        ERROR: empty expression
+  Division by zero       5 / 0              ERROR: Division by zero...
+  Div by zero (expr)     10 / (5 - 5)       ERROR: Division by zero...
+  Mismatched ')'         3 + 5)             ERROR: Mismatched parentheses...
+  Mismatched '('         (3 + 5             ERROR: Mismatched parentheses...
+  Invalid character      3 @ 5              ERROR: Unrecognised character...
+  Missing input file     (no input.txt)     Prints error, exits cleanly
+
+
+==============================================================
+11. LIMITATIONS
+==============================================================
+
+  (a) Only supports: + - * /
+      No exponentiation, modulo, or bitwise operators.
+
+  (b) No support for functions: sin(), sqrt(), abs(), etc.
+
+  (c) No support for variables (e.g. x + 5).
+
+  (d) Non-integer results rounded to 6 decimal places.
+
+  (e) File names input.txt and output.txt are hardcoded.
+
+  (f) Entire file is read into memory (fine for this scale).
+
+
+==============================================================
+12. CONCLUSION
+==============================================================
+
+This assignment successfully demonstrates the implementation
+and application of the Stack data structure in Python.
+
+A Stack class was built from scratch with push(), pop(), and
+peek() operations following the LIFO principle. The Stack was
+used as the core data structure in both stages of expression
+evaluation: the operator stack in Shunting-Yard conversion,
+and the operand stack in postfix evaluation.
+
+The program correctly reads expressions from input.txt,
+evaluates each one respecting operator precedence and
+parentheses, and writes results to output.txt in the matching
+format. All ten expressions produced mathematically correct
+results. All 57 automated unit tests passed.
+
+Python's built-in eval() function was not used anywhere.
+Every algorithmic step is coded explicitly, making the role
+of the Stack clearly visible throughout the source code.
+
+
+==============================================================
+13. REFERENCES
+==============================================================
+
+Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
+  (2009). Introduction to Algorithms (3rd ed.). MIT Press.
+
+Dijkstra, E. W. (1961). Algol 60 translation.
+  Mathematisch Centrum report MR 35/61.
+
+GeeksforGeeks. (2024). Stack Data Structure.
+  https://www.geeksforgeeks.org/stack-data-structure/
+
+GeeksforGeeks. (2024). Shunting Yard Algorithm.
+  https://www.geeksforgeeks.org/expression-evaluation/
+
+Python Software Foundation. (2024). Python 3 Documentation.
+  https://docs.python.org/3/
+
+Limkokwing University of Creative Technology. (2026).
+  DCOMP320: Data Structures and Algorithm Analysis Course
+  Notes. Department of ICT, Sierra Leone.
+
+
+==============================================================
+END OF REPORT
+==============================================================

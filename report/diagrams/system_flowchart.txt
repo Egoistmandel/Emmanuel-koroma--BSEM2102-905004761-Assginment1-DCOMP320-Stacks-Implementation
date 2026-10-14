@@ -1,0 +1,190 @@
+==============================================================
+  DCOMP320 - Data Structures and Algorithm Analysis
+  Assignment 1: Stacks Implementation
+  SYSTEM FLOWCHART (ASCII)
+==============================================================
+  Student  : Emmanuel Koroma
+  ID       : 905004761
+==============================================================
+
+
+==============================================================
+FLOWCHART A - MAIN PROGRAM FLOW
+==============================================================
+
+         +---------------------------+
+         |          START            |
+         +---------------------------+
+                      |
+                      v
+         +---------------------------+
+         |   Open input.txt          |
+         +---------------------------+
+                      |
+              --------+--------
+             | File exists?    |
+              --------+--------
+          YES |                | NO
+              |                v
+              |        +--------------------+
+              |        | Print error message|
+              |        | EXIT               |
+              |        +--------------------+
+              v
+         +---------------------------+
+         |  Read all lines from      |
+         |  input.txt into list      |
+         +---------------------------+
+                      |
+                      v
+         +---------------------------+
+         |  Initialise results list  |
+         +---------------------------+
+                      |
+                      v
+         +-------------------------------+
+         |  For each line in input:      |
+         |                               |
+         |  Is it a separator (-----)?   |
+         |      YES --> Keep as-is       |
+         |                               |
+         |  Is it blank?                 |
+         |      YES --> Keep as-is       |
+         |                               |
+         |  Otherwise:                   |
+         |      --> Evaluate expression  |
+         +-------------------------------+
+                      |
+                      v
+         +---------------------------+
+         |  Write results to         |
+         |  output.txt               |
+         +---------------------------+
+                      |
+                      v
+         +---------------------------+
+         |  Print summary to console |
+         +---------------------------+
+                      |
+                      v
+         +---------------------------+
+         |            END            |
+         +---------------------------+
+
+
+==============================================================
+FLOWCHART B - EXPRESSION EVALUATION PIPELINE
+==============================================================
+
+  Raw infix string: e.g. "(8 / 4) + 7 * 2"
+                      |
+                      v
+         +---------------------------+
+         |       TOKENISE            |
+         |  ['(','8','/','4',')',    |
+         |   '+','7','*','2']        |
+         +---------------------------+
+                      |
+              --------+---------
+             | Valid tokens?    |
+          YES |                 | NO
+              |                 v
+              |         +----------------+
+              |         | Return ERROR   |
+              |         +----------------+
+              v
+         +-----------------------------+
+         |   SHUNTING-YARD ALGORITHM   |
+         |   (Infix -> Postfix)        |
+         |   Uses: operator_stack      |
+         |   ['8','4','/','7','2',     |
+         |    '*','+']                 |
+         +-----------------------------+
+                      |
+              --------+---------
+             |Parens balanced?  |
+          YES |                 | NO
+              |                 v
+              |         +----------------+
+              |         | Return ERROR   |
+              |         +----------------+
+              v
+         +-----------------------------+
+         |   POSTFIX EVALUATION        |
+         |   Uses: operand_stack       |
+         |   Result: 16                |
+         +-----------------------------+
+                      |
+              --------+---------
+             | Division by zero?|
+          NO |                  | YES
+              v                 v
+      +-------------+   +---------------+
+      | Format and  |   | Return ERROR  |
+      | return      |   +---------------+
+      | result      |
+      +-------------+
+
+
+==============================================================
+FLOWCHART C - SHUNTING-YARD (OPERATOR STACK DETAIL)
+==============================================================
+
+  For each token in infix token list:
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+      NUMBER      OPERATOR    PARENTHESIS
+          |           |           |
+          v           |        ( --> push to
+    Push to        Check         operator_stack
+    output         precedence
+    queue             |          ) --> pop operators
+                      |             to output until
+              While stack NOT       '(' is found,
+              empty AND top         then discard '('
+              has higher/equal
+              precedence:
+                pop to output
+                      |
+                Push current
+                operator to
+                stack
+
+  After all tokens:
+    Pop remaining operators from stack to output queue
+
+
+==============================================================
+FLOWCHART D - POSTFIX EVALUATION (OPERAND STACK DETAIL)
+==============================================================
+
+  For each token in postfix list:
+                      |
+              --------+---------
+             | Is NUMBER?       |
+          YES |                 | NO (operator)
+              v                 v
+       Push number        Pop RIGHT operand
+       onto               Pop LEFT operand
+       operand_stack            |
+                         Apply operator:
+                         result = LEFT op RIGHT
+                                |
+                     Is it division?
+                    YES |       | NO
+                        v       v
+                    right==0?  Push result
+                    YES |       to operand_stack
+                        v
+                    Raise ERROR
+                    (division by zero)
+
+  After all tokens:
+    Pop final result from operand_stack and return it
+
+
+==============================================================
+END OF FLOWCHART
+==============================================================
