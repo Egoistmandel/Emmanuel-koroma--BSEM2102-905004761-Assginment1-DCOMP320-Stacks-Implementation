@@ -318,8 +318,6 @@ git remote add origin https://github.com/[YOUR-USERNAME]/[YOUR-REPO-NAME].git
 git push -u origin main
 ```
 
-Replace `[YOUR-USERNAME]` and `[YOUR-REPO-NAME]` with your actual GitHub username and repository name.  
-Then add your lecturer (**amandus.bcoker@limkokwing.edu.sl**) as a collaborator via **Settings → Collaborators** in the GitHub repository.
 
 ---
 
